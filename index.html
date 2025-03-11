@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Probabilitas Pertandingan Sepak Bola</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            color: #0a3d62;
+        }
+        .input-section, .result-section {
+            margin-bottom: 30px;
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0a3d62;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            display: block;
+            margin: 20px 0;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #155e90;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .score-box {
+            background-color: #f0f6fa;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .score-box .probability {
+            font-weight: bold;
+            color: #0a3d62;
+            font-size: 1.2em;
+        }
+        .red-card-section, .live-stats-section {
+            padding: 15px;
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        .summary-box {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .result-bar {
+            display: flex;
+            height: 40px;
+            margin-top: 15px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .home-win, .draw, .away-win {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        .home-win {
+            background-color: #3498db;
+        }
+        .draw {
+            background-color: #f39c12;
+        }
+        .away-win {
+            background-color: #e74c3c;
+        }
+        .hidden {
+            display: none;
+        }
+        #scoreTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #scoreTable th, #scoreTable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        #scoreTable th {
+            background-color: #f2f2f2;
+        }
+        .high-probability {
+            background-color: #d4f1f9;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kalkulator Probabilitas Pertandingan Sepak Bola</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="pre-match">Pre-Match</div>
+            <div class="tab" data-tab="live-match">Live Match</div>
+        </div>
+        
+        <div class="tab-content active" id="pre-match">
+            <div class="input-section">
+                <h2>Data Historis Tim</h2>
+                <div class="input-grid">
+                    <div>
+                        <h3>Tim Tuan Rumah</h3>
+                        <div class="input-group">
+                            <label for="homeTeam">Nama Tim</label>
+                            <input type="text" id="homeTeam" placeholder="contoh: Persib">
+                        </div>
+                        <div class="input-group">
+                            <label for="homeAvgGoalsScored">Rata-rata Gol Dicetak (Home)</label>
+                            <input type="number" id="homeAvgGoalsScored" step="0.01" min="0" placeholder="contoh: 1.8">
+                        </div>
+                        <div class="input-group">
+                            <label for="homeAvgGoalsConceded">Rata-rata Gol Kebobolan (Home)</label>
+                            <input type="number" id="homeAvgGoalsConceded" step="0.01" min="0" placeholder="contoh: 1.0">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3>Tim Tamu</h3>
+                        <div class="input-group">
+                            <label for="awayTeam">Nama Tim</label>
+                            <input type="text" id="awayTeam" placeholder="contoh: Borneo">
+                        </div>
+                        <div class="input-group">
+                            <label for="awayAvgGoalsScored">Rata-rata Gol Dicetak (Away)</label>
+                            <input type="number" id="awayAvgGoalsScored" step="0.01" min="0" placeholder="contoh: 1.2">
+                        </div>
+                        <div class="input-group">
+                            <label for="awayAvgGoalsConceded">Rata-rata Gol Kebobolan (Away)</label>
+                            <input type="number" id="awayAvgGoalsConceded" step="0.01" min="0" placeholder="contoh: 1.4">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="leagueAvgGoals">Rata-rata Gol Liga</label>
+                    <input type="number" id="leagueAvgGoals" step="0.01" min="0" value="1.5" placeholder="contoh: 1.5">
+                </div>
+                
+                <h3>Data Head-to-Head</h3>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="h2hHomeGoals">Rata-rata Gol Tim Tuan Rumah di H2H</label>
+                        <input type="number" id="h2hHomeGoals" step="0.01" min="0" placeholder="contoh: 1.4">
+                    </div>
+                    <div class="input-group">
+                        <label for="h2hAwayGoals">Rata-rata Gol Tim Tamu di H2H</label>
+                        <input type="number" id="h2hAwayGoals" step="0.01" min="0" placeholder="contoh: 1.0">
+                    </div>
+                </div>
+                
+                <button id="calculateBtn">Hitung Probabilitas</button>
+            </div>
+            
+            <div class="result-section hidden" id="results">
+                <h2>Hasil Analisis Probabilitas</h2>
+                
+                <div class="summary-box">
+                    <h3>Ekspektasi Gol (λ)</h3>
+                    <p><span id="homeTeamLabel">Tim Tuan Rumah</span>: <span id="homeLambda">0</span></p>
+                    <p><span id="awayTeamLabel">Tim Tamu</span>: <span id="awayLambda">0</span></p>
+                    
+                    <h3>Probabilitas Hasil</h3>
+                    <div class="result-bar">
+                        <div class="home-win" id="homeWinBar">0%</div>
+                        <div class="draw" id="drawBar">0%</div>
+                        <div class="away-win" id="awayWinBar">0%</div>
+                    </div>
+                    <p style="margin-top: 10px;">
+                        <span id="homeTeamWin">Tim Tuan Rumah</span> Menang: <strong id="homeWinProb">0%</strong> | 
+                        Seri: <strong id="drawProb">0%</strong> | 
+                        <span id="awayTeamWin">Tim Tamu</span> Menang: <strong id="awayWinProb">0%</strong>
+                    </p>
+                </div>
+                
+                <h3>Probabilitas Skor Teratas</h3>
+                <div class="score-grid" id="topScores">
+                    <!-- To be filled by JavaScript -->
+                </div>
+                
+                <h3>Tabel Probabilitas Skor</h3>
+                <table id="scoreTable">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>0</th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4+</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- To be filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="live-match">
+            <div class="input-section">
+                <h2>Update Pertandingan Live</h2>
+                
+                <div class="input-group">
+                    <label for="currentMinute">Menit Pertandingan</label>
+                    <input type="number" id="currentMinute" min="1" max="90" placeholder="contoh: 60">
+                </div>
+                
+                <div class="input-grid">
+                    <div>
+                        <h3>Skor Saat Ini</h3>
+                        <div class="input-group">
+                            <label for="currentHomeGoals">Gol Tim Tuan Rumah</label>
+                            <input type="number" id="currentHomeGoals" min="0" value="0">
+                        </div>
+                        <div class="input-group">
+                            <label for="currentAwayGoals">Gol Tim Tamu</label>
+                            <input type="number" id="currentAwayGoals" min="0" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="red-card-section">
+                        <h3>Kartu Merah</h3>
+                        <div class="input-group">
+                            <label for="homeRedCards">Kartu Merah Tim Tuan Rumah</label>
+                            <input type="number" id="homeRedCards" min="0" max="5" value="0">
+                        </div>
+                        <div class="input-group">
+                            <label for="awayRedCards">Kartu Merah Tim Tamu</label>
+                            <input type="number" id="awayRedCards" min="0" max="5" value="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="live-stats-section">
+                    <h3>Statistik Live</h3>
+                    <div class="input-grid">
+                        <div>
+                            <div class="input-group">
+                                <label for="homePossession">Penguasaan Bola Tim Tuan Rumah (%)</label>
+                                <input type="number" id="homePossession" min="0" max="100" value="50">
+                            </div>
+                            <div class="input-group">
+                                <label for="homeShots">Tembakan Tim Tuan Rumah</label>
+                                <input type="number" id="homeShots" min="0" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="homeShotsOnTarget">Tembakan On Target Tim Tuan Rumah</label>
+                                <input type="number" id="homeShotsOnTarget" min="0" value="0">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="input-group">
+                                <label for="awayPossession">Penguasaan Bola Tim Tamu (%)</label>
+                                <input type="number" id="awayPossession" min="0" max="100" value="50">
+                            </div>
+                            <div class="input-group">
+                                <label for="awayShots">Tembakan Tim Tamu</label>
+                                <input type="number" id="awayShots" min="0" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="awayShotsOnTarget">Tembakan On Target Tim Tamu</label>
+                                <input type="number" id="awayShotsOnTarget" min="0" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="currentHomeXG">Current xG Tuan Rumah</label>
+                    <input type="number" id="currentHomeXG" step="0.01" min="0" placeholder="contoh: 0.75">
+                </div>
+                <div class="input-group">
+                    <label for="currentAwayXG">Current xG Tamu</label>
+                    <input type="number" id="currentAwayXG" step="0.01" min="0" placeholder="contoh: 0.5">
+                </div>
+                
+                <button id="updateLiveBtn">Update Probabilitas Live</button>
+            </div>
+            
+            <div class="result-section hidden" id="liveResults">
+                <h2>Probabilitas Updated (Live)</h2>
+                
+                <div class="summary-box">
+                    <h3>Ekspektasi Gol Tersisa (λ)</h3>
+                    <p><span id="liveHomeTeamLabel">Tim Tuan Rumah</span>: <span id="liveHomeLambda">0</span></p>
+                    <p><span id="liveAwayTeamLabel">Tim Tamu</span>: <span id="liveAwayLambda">0</span></p>
+                    
+                    <h3>Probabilitas Hasil Akhir</h3>
+                    <div class="result-bar">
+                        <div class="home-win" id="liveHomeWinBar">0%</div>
+                        <div class="draw" id="liveDrawBar">0%</div>
+                        <div class="away-win" id="liveAwayWinBar">0%</div>
+                    </div>
+                    <p style="margin-top: 10px;">
+                        <span id="liveHomeTeamWin">Tim Tuan Rumah</span> Menang: <strong id="liveHomeWinProb">0%</strong> | 
+                        Seri: <strong id="liveDrawProb">0%</strong> | 
+                        <span id="liveAwayTeamWin">Tim Tamu</span> Menang: <strong id="liveAwayWinProb">0%</strong>
+                    </p>
+                </div>
+                
+                <h3>Probabilitas Skor Akhir Teratas</h3>
+                <div class="score-grid" id="liveTopScores">
+                    <!-- To be filled by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Utility functions
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            return n * factorial(n - 1);
+        }
+        
+        function poissonProbability(lambda, k) {
+            return Math.exp(-lambda) * Math.pow(lambda, k) / factorial(k);
+        }
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // Pre-match calculation
+        document.getElementById('calculateBtn').addEventListener('click', function() {
+            // Get input values
+            const homeTeam = document.getElementById('homeTeam').value || 'Tim Tuan Rumah';
+            const awayTeam = document.getElementById('awayTeam').value || 'Tim Tamu';
+            
+            const homeAvgGoalsScored = parseFloat(document.getElementById('homeAvgGoalsScored').value) || 0;
+            const homeAvgGoalsConceded = parseFloat(document.getElementById('homeAvgGoalsConceded').value) || 0;
+            const awayAvgGoalsScored = parseFloat(document.getElementById('awayAvgGoalsScored').value) || 0;
+            const awayAvgGoalsConceded = parseFloat(document.getElementById('awayAvgGoalsConceded').value) || 0;
+            
+            const leagueAvgGoals = parseFloat(document.getElementById('leagueAvgGoals').value) || 1.5;
+            
+            const h2hHomeGoals = parseFloat(document.getElementById('h2hHomeGoals').value);
+            const h2hAwayGoals = parseFloat(document.getElementById('h2hAwayGoals').value);
+            
+            // Calculate attacking and defensive strengths
+            const homeAttackStrength = homeAvgGoalsScored / leagueAvgGoals;
+            const homeDefenseStrength = homeAvgGoalsConceded / leagueAvgGoals;
+            const awayAttackStrength = awayAvgGoalsScored / leagueAvgGoals;
+            const awayDefenseStrength = awayAvgGoalsConceded / leagueAvgGoals;
+            
+            // Calculate expected goals (lambda)
+            const homeAdvantage = 1.2; // Home advantage factor
+            let homeLambda = homeAttackStrength * awayDefenseStrength * homeAdvantage;
+            let awayLambda = awayAttackStrength * homeDefenseStrength * 1; // No advantage for away team
+            
+            // Adjust with head-to-head data if available
+            if (!isNaN(h2hHomeGoals) && !isNaN(h2hAwayGoals) && h2hHomeGoals > 0) {
+                const h2hFactor = (h2hHomeGoals / h2hAwayGoals) / (homeAvgGoalsScored / awayAvgGoalsScored);
+                homeLambda *= h2hFactor;
+            }
+            
+            // Round lambdas to 4 decimal places
+            homeLambda = Math.round(homeLambda * 10000) / 10000;
+            awayLambda = Math.round(awayLambda * 10000) / 10000;
+            
+            // Calculate probabilities for each score
+            const maxGoals = 4; // Max goals to calculate (0 to 4+)
+            const scoreProbabilities = [];
+            
+            // Calculate probability for each score combination
+            for (let homeGoals = 0; homeGoals <= maxGoals; homeGoals++) {
+                for (let awayGoals = 0; awayGoals <= maxGoals; awayGoals++) {
+                    const homePoissonProb = poissonProbability(homeLambda, homeGoals);
+                    const awayPoissonProb = poissonProbability(awayLambda, awayGoals);
+                    const scoreProb = homePoissonProb * awayPoissonProb;
+                    
+                    scoreProbabilities.push({
+                        homeGoals: homeGoals,
+                        awayGoals: awayGoals,
+                        probability: scoreProb
+                    });
+                }
+            }
+            
+            // Sort probabilities
+            scoreProbabilities.sort((a, b) => b.probability - a.probability);
+            
+            // Calculate outcome probabilities
+            let homeWinProb = 0;
+            let drawProb = 0;
+            let awayWinProb = 0;
+            
+            scoreProbabilities.forEach(score => {
+                if (score.homeGoals > score.awayGoals) {
+                    homeWinProb += score.probability;
+                } else if (score.homeGoals === score.awayGoals) {
+                    drawProb += score.probability;
+                } else {
+                    awayWinProb += score.probability;
+                }
+            });
+            
+            // Update UI
+            document.getElementById('homeTeamLabel').textContent = homeTeam;
+            document.getElementById('awayTeamLabel').textContent = awayTeam;
+            document.getElementById('homeLambda').textContent = homeLambda.toFixed(2);
+            document.getElementById('awayLambda').textContent = awayLambda.toFixed(2);
+            
+            document.getElementById('homeTeamWin').textContent = homeTeam;
+            document.getElementById('awayTeamWin').textContent = awayTeam;
+            document.getElementById('homeWinProb').textContent = (homeWinProb * 100).toFixed(1) + '%';
+            document.getElementById('drawProb').textContent = (drawProb * 100).toFixed(1) + '%';
+            document.getElementById('awayWinProb').textContent = (awayWinProb * 100).toFixed(1) + '%';
+            
+            // Update result bars
+            document.getElementById('homeWinBar').style.width = (homeWinProb * 100) + '%';
+            document.getElementById('homeWinBar').textContent = (homeWinProb * 100).toFixed(0) + '%';
+            document.getElementById('drawBar').style.width = (drawProb * 100) + '%';
+            document.getElementById('drawBar').textContent = (drawProb * 100).toFixed(0) + '%';
+            document.getElementById('awayWinBar').style.width = (awayWinProb * 100) + '%';
+            document.getElementById('awayWinBar').textContent = (awayWinProb * 100).toFixed(0) + '%';
+            
+            // Update top scores
+            const topScoresDiv = document.getElementById('topScores');
+            topScoresDiv.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                if (i < scoreProbabilities.length) {
+                    const score = scoreProbabilities[i];
+                    const scoreBox = document.createElement('div');
+                    scoreBox.className = 'score-box';
+                    scoreBox.innerHTML = `
+                        <div>${score.homeGoals} - ${score.awayGoals}</div>
+                        <div class="probability">${(score.probability * 100).toFixed(1)}%</div>
+                    `;
+                    topScoresDiv.appendChild(scoreBox);
+                }
+            }
+            
+            // Generate score table
+            const scoreTable = document.getElementById('scoreTable');
+            const tbody = scoreTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            for (let homeGoals = 0; homeGoals <= maxGoals; homeGoals++) {
+                const row = document.createElement('tr');
+                const headerCell = document.createElement('th');
+                headerCell.textContent = homeGoals;
+                row.appendChild(headerCell);
+                
+                for (let awayGoals = 0; awayGoals <= maxGoals; awayGoals++) {
+                    const cell = document.createElement('td');
+                    const scoreProb = scoreProbabilities.find(
+                        s => s.homeGoals === homeGoals && s.awayGoals === awayGoals
+                    );
+                    
+                    const probability = (scoreProb.probability * 100).toFixed(1) + '%';
+                    cell.textContent = probability;
+                    
+                    // Highlight cells with high probability
+                    if (scoreProb.probability > 0.1) {
+                        cell.className = 'high-probability';
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                tbody.appendChild(row);
+            }
+            
+            // Show results
+            document.getElementById('results').classList.remove('hidden');
+        });
+        
+        // Live match updates
+        document.getElementById('updateLiveBtn').addEventListener('click', function() {
+            const homeTeam = document.getElementById('homeTeam').value || 'Tim Tuan Rumah';
+            const awayTeam = document.getElementById('awayTeam').value || 'Tim Tamu';
+            
+            // Get current match state
+            const currentMinute = parseInt(document.getElementById('currentMinute').value) || 1;
+            const currentHomeGoals = parseInt(document.getElementById('currentHomeGoals').value) || 0;
+            const currentAwayGoals = parseInt(document.getElementById('currentAwayGoals').value) || 0;
+            
+            // Get red cards
+            const homeRedCards = parseInt(document.getElementById('homeRedCards').value) || 0;
+            const awayRedCards = parseInt(document.getElementById('awayRedCards').value) || 0;
+            
+            // Get possession stats
+            const homePossession = parseInt(document.getElementById('homePossession').value) || 50;
+            const awayPossession = parseInt(document.getElementById('awayPossession').value) || 50;
+            
+            // Get shots
+            const homeShots = parseInt(document.getElementById('homeShots').value) || 0;
+            const homeShotsOnTarget = parseInt(document.getElementById('homeShotsOnTarget').value) || 0;
+            const awayShots = parseInt(document.getElementById('awayShots').value) || 0;
+            const awayShotsOnTarget = parseInt(document.getElementById('awayShotsOnTarget').value) || 0;
+            
+            // Get current xG
+            let currentHomeXG = parseFloat(document.getElementById('currentHomeXG').value) || 0;
+            let currentAwayXG = parseFloat(document.getElementById('currentAwayXG').value) || 0;
+            
+            // Calculate remaining match time factor
+            const remainingTimeFactor = (90 - currentMinute) / 90;
+            
+            // Adjust xG based on red cards
+            if (homeRedCards > 0) {
+                currentHomeXG *= Math.pow(0.7, homeRedCards); // Reduce by 30% per red card
+                currentAwayXG *= Math.pow(1.2, homeRedCards); // Increase by 20% per opponent red card
+            }
+            
+            if (awayRedCards > 0) {
+                currentAwayXG *= Math.pow(0.7, awayRedCards);
+                currentHomeXG *= Math.pow(1.2, awayRedCards);
+            }
+            
+            // Adjust xG based on possession
+            if (homePossession !== 50) {
+                const possessionFactor = Math.pow(homePossession / 50, 1.3);
+                currentHomeXG *= possessionFactor;
+            }
+            
+            if (awayPossession !== 50) {
+                const possessionFactor = Math.pow(awayPossession / 50, 1.3);
+                currentAwayXG *= possessionFactor;
+            }
+            
+            // Adjust xG based on shots ratio
+            if (homeShots > 0 && awayShots > 0) {
+                const shotsRatio = (homeShotsOnTarget / homeShots) / (awayShotsOnTarget / awayShots);
+                if (!isNaN(shotsRatio) && isFinite(shotsRatio)) {
+                    currentHomeXG *= Math.pow(shotsRatio, 0.5);
+                }
+            }
+            
+            // Calculate expected remaining goals (scaled by remaining time)
+            const homeLambdaRemaining = currentHomeXG * remainingTimeFactor;
+            const awayLambdaRemaining = currentAwayXG * remainingTimeFactor;
+            
+// Calculate probabilities for remaining goals
+const maxRemainingGoals = 3;
+            const remainingScoreProbabilities = [];
+            
+            // Calculate probability for each remaining score combination
+            for (let homeRemainingGoals = 0; homeRemainingGoals <= maxRemainingGoals; homeRemainingGoals++) {
+                for (let awayRemainingGoals = 0; awayRemainingGoals <= maxRemainingGoals; awayRemainingGoals++) {
+                    const homePoissonProb = poissonProbability(homeLambdaRemaining, homeRemainingGoals);
+                    const awayPoissonProb = poissonProbability(awayLambdaRemaining, awayRemainingGoals);
+                    const scoreProb = homePoissonProb * awayPoissonProb;
+                    
+                    const finalHomeGoals = currentHomeGoals + homeRemainingGoals;
+                    const finalAwayGoals = currentAwayGoals + awayRemainingGoals;
+                    
+                    remainingScoreProbabilities.push({
+                        homeGoals: finalHomeGoals,
+                        awayGoals: finalAwayGoals,
+                        probability: scoreProb
+                    });
+                }
+            }
+            
+            // Sort probabilities
+            remainingScoreProbabilities.sort((a, b) => b.probability - a.probability);
+            
+            // Calculate outcome probabilities
+            let liveHomeWinProb = 0;
+            let liveDrawProb = 0;
+            let liveAwayWinProb = 0;
+            
+            remainingScoreProbabilities.forEach(score => {
+                if (score.homeGoals > score.awayGoals) {
+                    liveHomeWinProb += score.probability;
+                } else if (score.homeGoals === score.awayGoals) {
+                    liveDrawProb += score.probability;
+                } else {
+                    liveAwayWinProb += score.probability;
+                }
+            });
+            
+            // Update live UI
+            document.getElementById('liveHomeTeamLabel').textContent = homeTeam;
+            document.getElementById('liveAwayTeamLabel').textContent = awayTeam;
+            document.getElementById('liveHomeLambda').textContent = homeLambdaRemaining.toFixed(2);
+            document.getElementById('liveAwayLambda').textContent = awayLambdaRemaining.toFixed(2);
+            
+            document.getElementById('liveHomeTeamWin').textContent = homeTeam;
+            document.getElementById('liveAwayTeamWin').textContent = awayTeam;
+            document.getElementById('liveHomeWinProb').textContent = (liveHomeWinProb * 100).toFixed(1) + '%';
+            document.getElementById('liveDrawProb').textContent = (liveDrawProb * 100).toFixed(1) + '%';
+            document.getElementById('liveAwayWinProb').textContent = (liveAwayWinProb * 100).toFixed(1) + '%';
+            
+            // Update live result bars
+            document.getElementById('liveHomeWinBar').style.width = (liveHomeWinProb * 100) + '%';
+            document.getElementById('liveHomeWinBar').textContent = (liveHomeWinProb * 100).toFixed(0) + '%';
+            document.getElementById('liveDrawBar').style.width = (liveDrawProb * 100) + '%';
+            document.getElementById('liveDrawBar').textContent = (liveDrawProb * 100).toFixed(0) + '%';
+            document.getElementById('liveAwayWinBar').style.width = (liveAwayWinProb * 100) + '%';
+            document.getElementById('liveAwayWinBar').textContent = (liveAwayWinProb * 100).toFixed(0) + '%';
+            
+            // Update top scores for live match
+            const liveTopScoresDiv = document.getElementById('liveTopScores');
+            liveTopScoresDiv.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                if (i < remainingScoreProbabilities.length) {
+                    const score = remainingScoreProbabilities[i];
+                    const scoreBox = document.createElement('div');
+                    scoreBox.className = 'score-box';
+                    scoreBox.innerHTML = `
+                        <div>${score.homeGoals} - ${score.awayGoals}</div>
+                        <div class="probability">${(score.probability * 100).toFixed(1)}%</div>
+                    `;
+                    liveTopScoresDiv.appendChild(scoreBox);
+                }
+            }
+            
+            // Show live results
+            document.getElementById('liveResults').classList.remove('hidden');
+        });
+        
+        // Sync possession values
+        document.getElementById('homePossession').addEventListener('input', function() {
+            const homePossession = parseInt(this.value) || 0;
+            if (homePossession > 100) this.value = 100;
+            document.getElementById('awayPossession').value = 100 - homePossession;
+        });
+        
+        document.getElementById('awayPossession').addEventListener('input', function() {
+            const awayPossession = parseInt(this.value) || 0;
+            if (awayPossession > 100) this.value = 100;
+            document.getElementById('homePossession').value = 100 - awayPossession;
+        });
+        
+        // Validate shots on target <= total shots
+        document.getElementById('homeShotsOnTarget').addEventListener('input', function() {
+            const homeShotsOnTarget = parseInt(this.value) || 0;
+            const homeShots = parseInt(document.getElementById('homeShots').value) || 0;
+            if (homeShotsOnTarget > homeShots) {
+                this.value = homeShots;
+            }
+        });
+        
+        document.getElementById('homeShots').addEventListener('input', function() {
+            const homeShots = parseInt(this.value) || 0;
+            const homeShotsOnTarget = parseInt(document.getElementById('homeShotsOnTarget').value) || 0;
+            if (homeShotsOnTarget > homeShots) {
+                document.getElementById('homeShotsOnTarget').value = homeShots;
+            }
+        });
+        
+        document.getElementById('awayShotsOnTarget').addEventListener('input', function() {
+            const awayShotsOnTarget = parseInt(this.value) || 0;
+            const awayShots = parseInt(document.getElementById('awayShots').value) || 0;
+            if (awayShotsOnTarget > awayShots) {
+                this.value = awayShots;
+            }
+        });
+        
+        document.getElementById('awayShots').addEventListener('input', function() {
+            const awayShots = parseInt(this.value) || 0;
+            const awayShotsOnTarget = parseInt(document.getElementById('awayShotsOnTarget').value) || 0;
+            if (awayShotsOnTarget > awayShots) {
+                document.getElementById('awayShotsOnTarget').value = awayShots;
+            }
+        });
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default values for fields if needed
+            document.getElementById('leagueAvgGoals').value = 1.5;
+            document.getElementById('homePossession').value = 50;
+            document.getElementById('awayPossession').value = 50;
+        });
+    </script>
+</body>
+</html>
+            
